@@ -1,0 +1,15 @@
+{
+  "name": "FlorCWR DEV · muestreo multiespecie",
+  "short_name": "FlorCWR DEV",
+  "description": "Versión de DESARROLLO (no producción) de FlorCWR: muestreo multiespecie por cuadrícula ligado a la reserva genética.",
+  "start_url": "./FlorCWR.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f4ec",
+  "theme_color": "#7a3512",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
