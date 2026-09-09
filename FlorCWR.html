@@ -780,6 +780,12 @@ textarea{resize:vertical;min-height:54px}
 .cellPanel h4{margin:0 0 8px;font-size:13px;color:var(--ink)}
 .cellPanel label{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 2px;cursor:pointer}
 .cellPanel label input{width:17px;height:17px}
+.freqBox{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-top:8px}
+.freqBox .row{display:flex;justify-content:space-between;align-items:center;padding:6px 2px;
+  border-bottom:1px solid #f0eee6;font-size:13.5px}
+.freqBox .row:last-child{border-bottom:0}
+.freqBox .row i{color:var(--ink);font-style:italic}
+.freqBox .row b{color:var(--clay);font-variant-numeric:tabular-nums}
 
 /* photos */
 .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
@@ -877,7 +883,6 @@ textarea{resize:vertical;min-height:54px}
         <button class="btn sm ghost" id="btnUndo" style="display:none">↶ Deshacer</button>
         <button class="btn sm" id="btnFinish" style="display:none">✓ Cerrar polígono</button>
         <button class="btn sm ghost" id="btnClearPoly">Borrar</button>
-        <button class="btn sm ghost" id="btnCenterPoint">Centrar en el punto</button>
         <button class="btn sm ghost" id="btnTrackMe">◉ Seguir mi posición</button>
       </div>
       <div class="utmline" id="vertexInfo" style="display:none"></div>
@@ -914,6 +919,7 @@ textarea{resize:vertical;min-height:54px}
         <button class="btn sm ghost" id="btnGridClear" disabled>Limpiar todas las presencias</button>
       </div>
       <div class="utmline" id="freqInfo">Cierra un polígono, define las especies objetivo y elige un tamaño de malla.</div>
+      <div class="freqBox" id="freqSpeciesBox" style="display:none"></div>
       <div class="note warn" id="gridAccWarn" style="display:none;margin-top:8px"></div>
       <div class="cellPanel" id="cellPanel" style="display:none">
         <h4>Presencia en la cuadrícula <span id="cellPanelLabel"></span></h4>
@@ -922,112 +928,9 @@ textarea{resize:vertical;min-height:54px}
       </div>
     </div>
 
-    <div class="field suggest">
-      <label>Especie <span class="req">*</span> <span class="hint" id="taxstat"></span></label>
-      <input id="f_especie" autocomplete="off" placeholder="Empieza a escribir el taxón…">
-      <div class="suggest-list" id="suggestList" style="display:none"></div>
-    </div>
-    <div class="utmline" id="taxInfo" style="display:none;margin-top:-9px;margin-bottom:15px"></div>
-
-    <div class="row">
-      <div class="field">
-        <label>Certidumbre de ID</label>
-        <select id="f_certidumbre">
-          <option value="">—</option>
-          <option>Segura</option>
-          <option>Probable</option>
-          <option>Dudosa</option>
-          <option>Pendiente confirmación</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Fecha de observación <span class="req">*</span></label>
-        <input type="date" id="f_fecha">
-      </div>
-    </div>
-
-    <!-- COORDENADAS -->
     <div class="field">
-      <label>Coordenadas del punto <span class="req">*</span> <span class="hint">lat, lon (WGS84)</span></label>
-      <div class="coordbar">
-        <div class="field"><input id="f_lat" inputmode="decimal" placeholder="Latitud"></div>
-        <div class="field"><input id="f_lon" inputmode="decimal" placeholder="Longitud"></div>
-        <button class="btn sm" id="btnGPS" title="Usar GPS">GPS</button>
-      </div>
-      <div class="utmline" id="utmPoint">UTM ETRS89: —</div>
-    </div>
-
-    <!-- MÉTODO DE ESTIMACIÓN -->
-    <div class="field">
-      <label>Estimación del tamaño poblacional</label>
-      <select id="f_metodo">
-        <option value="">—</option>
-        <option>Censo total</option>
-        <option>Transecto</option>
-        <option>Frecuencia</option>
-      </select>
-    </div>
-
-    <!-- SECCIÓN TRANSECTO (oculta por defecto) -->
-    <div class="field" id="transectoBlock" style="display:none">
-      <label>Datos del transecto <span class="hint">la abundancia se calcula con el área del polígono</span></label>
-      <div class="row">
-        <div class="field">
-          <label>Tamaño del transecto <span class="hint">m²</span></label>
-          <input id="f_transArea" inputmode="decimal" placeholder="ej. 50">
-        </div>
-        <div class="field">
-          <label>Nº individuos en transecto</label>
-          <input id="f_transN" inputmode="numeric" placeholder="ej. 18">
-        </div>
-      </div>
-      <div class="utmline" id="transInfo">Introduce el tamaño del transecto y el nº de individuos. Necesitas un polígono de área de la reserva cerrado.</div>
-    </div>
-
-    <!-- ABUNDANCIA -->
-    <div class="row">
-      <div class="field">
-        <label>Unidad de conteo</label>
-        <select id="f_unidad">
-          <option value="">—</option>
-          <option>Individuo</option>
-          <option>Rodal</option>
-          <option>Cobertura (m²)</option>
-          <option>Frecuencia (%)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Abundancia <span class="hint">nº unidades</span></label>
-        <input id="f_abundancia" inputmode="numeric" placeholder="ej. 240">
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label>Cobertura</label>
-        <select id="f_cobertura">
-          <option value="">—</option>
-          <option>r · &lt;1% (sólo)</option>
-          <option>+ · &lt;1%</option>
-          <option>1 · 1–5%</option>
-          <option>2 · 5–25%</option>
-          <option>3 · 25–50%</option>
-          <option>4 · 50–75%</option>
-          <option>5 · 75–100%</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Fenología</label>
-        <select id="f_fenologia">
-          <option value="">—</option>
-          <option>Vegetativo</option>
-          <option>Botón floral</option>
-          <option>Floración</option>
-          <option>Fructificación</option>
-          <option>Dispersión / senescente</option>
-          <option>Plántula</option>
-        </select>
-      </div>
+      <label>Fecha de observación <span class="req">*</span></label>
+      <input type="date" id="f_fecha">
     </div>
 
     <!-- HABITAT EUNIS -->
@@ -1247,59 +1150,8 @@ document.querySelectorAll('nav.tabs button').forEach(b=>{
   };
 });
 
-/* ================= AUTOCOMPLETE: TAXA ================= */
-const taxIn=$('#f_especie'), taxBox=$('#suggestList');
-let taxHi=-1, taxMatches=[];
-function refreshTaxStat(){ $('#taxstat').textContent='· '+taxList().length+' taxones'; }
-taxIn.addEventListener('input',()=>{
-  const q=taxIn.value.trim().toLowerCase();
-  catInfo(); maybeCopyFreq();
-  if(!q){taxBox.style.display='none';return}
-  const usingCat = !(taxa&&taxa.length);
-  taxMatches=taxList().filter(t=>t.toLowerCase().includes(q)).slice(0,40);
-  taxHi=-1;
-  if(!taxMatches.length){
-    taxBox.innerHTML='<div class="empty">Sin coincidencias · se guardará como texto libre</div>';
-  }else{
-    taxBox.innerHTML=taxMatches.map((t,i)=>{
-      const idx=t.toLowerCase().indexOf(q);
-      const h=esc(t.slice(0,idx))+'<b>'+esc(t.slice(idx,idx+q.length))+'</b>'+esc(t.slice(idx+q.length));
-      let badge='';
-      if(usingCat){const c=catByName(t);if(c){
-        const tags=[c.psc?'PSC':'',c.psua?'PSUA':'',c.u?c.u.split(' ')[0]:''].filter(Boolean).join(' · ');
-        badge=`<span style="float:right;font-size:11px;color:var(--clay);font-style:normal">${esc(tags)}</span>`+
-              (c.f?`<span style="display:block;font-size:11px;color:var(--muted);font-style:normal">${esc(c.f)}${c.c?' · '+esc(c.c.split(' (')[0]):''}</span>`:'');
-      }}
-      return `<div data-i="${i}"><i>${h}</i>${badge}</div>`;
-    }).join('');
-  }
-  taxBox.style.display='block';
-  taxBox.querySelectorAll('div[data-i]').forEach(d=>d.onclick=()=>{taxIn.value=taxMatches[+d.dataset.i];taxBox.style.display='none';catInfo();maybeCopyFreq()});
-});
-/* panel informativo del taxón seleccionado */
-function catInfo(){
-  const box=$('#taxInfo'); if(!box)return;
-  const c=catByName(taxIn.value.trim());
-  if(!c){box.style.display='none';box.innerHTML='';return}
-  const tags=[c.psc&&'<span class="tag">PSC</span>',c.psua&&'<span class="tag">PSUA</span>',
-    c.e&&`<span class="tag">Endem.: ${esc(c.e)}</span>`,
-    c.p&&`<span class="tag">Prot.: ${esc(c.p)}</span>`,
-    c.u&&`<span class="tag" style="background:#fbe9e0;color:#8c3f15;border-color:#e6c4b3">UICN ${esc(c.u)}</span>`].filter(Boolean).join('');
-  box.innerHTML=`<b>${esc(c.f)}</b>${c.c?' · '+esc(c.c):''}<div style="margin-top:4px">${tags}</div>`;
-  box.style.display='block';
-}
-taxIn.addEventListener('keydown',e=>{
-  if(taxBox.style.display==='none')return;
-  const items=taxBox.querySelectorAll('div[data-i]');if(!items.length)return;
-  if(e.key==='ArrowDown'){e.preventDefault();taxHi=(taxHi+1)%items.length}
-  else if(e.key==='ArrowUp'){e.preventDefault();taxHi=(taxHi-1+items.length)%items.length}
-  else if(e.key==='Enter'){if(taxHi>=0){e.preventDefault();taxIn.value=taxMatches[taxHi];taxBox.style.display='none';maybeCopyFreq()}return}
-  else return;
-  items.forEach(x=>x.classList.remove('hi'));items[taxHi].classList.add('hi');items[taxHi].scrollIntoView({block:'nearest'});
-});
-taxIn.addEventListener('blur',()=>setTimeout(()=>taxBox.style.display='none',180));
-
 /* ================= ESPECIES OBJETIVO (de la reserva) ================= */
+function refreshTaxStat(){ /* el contador de taxones ya no se muestra: el campo Especie individual se retiró */ }
 const especieObjIn=$('#f_especieObj'), especieObjBox=$('#especieObjSuggestList');
 let especieObjHi=-1, especieObjMatches=[];
 function renderTargetSpeciesChips(){
@@ -1360,21 +1212,9 @@ eunIn.addEventListener('input',()=>{
 });
 eunIn.addEventListener('blur',()=>setTimeout(()=>eunBox.style.display='none',180));
 
-/* ================= POINT + UTM ================= */
-const latIn=$('#f_lat'), lonIn=$('#f_lon');
-function updateUTM(){ $('#utmPoint').innerHTML='UTM ETRS89: '+fmtUTM(parseFloat(latIn.value),parseFloat(lonIn.value)); placePointMarker(); }
-latIn.addEventListener('input',updateUTM); lonIn.addEventListener('input',updateUTM);
-$('#btnGPS').onclick=()=>{
-  if(!navigator.geolocation){toast('GPS no disponible');return}
-  toast('Obteniendo posición…');
-  navigator.geolocation.getCurrentPosition(p=>{
-    latIn.value=p.coords.latitude.toFixed(6);lonIn.value=p.coords.longitude.toFixed(6);
-    updateUTM(); if(fmap)fmap.setView([p.coords.latitude,p.coords.longitude],16);
-  },()=>toast('No se pudo obtener el GPS'),{enableHighAccuracy:true,timeout:10000});
-};
 
 /* ================= FORM MAP (polígono) ================= */
-let fmap,drawnItems,pointMarker,drawing=false,drawPts=[],drawLayer;
+let fmap,drawnItems,drawing=false,drawPts=[],drawLayer;
 let vertexAcc=[], currentPolyAcc=null, autoTracking=false, autoTimer=null, autoEvery=5;
 /* Garantiza que Leaflet recalcule su tamaño cuando el contenedor pasa de 0 a su
    altura real (causa habitual del "mapa gris" en móvil dentro de pestañas). */
@@ -1404,6 +1244,8 @@ function initFormMap(){
   watchSize('map',fmap);
   drawnItems=new L.FeatureGroup().addTo(fmap);
   fmap.on('click',e=>{ if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
+  // al crear el mapa de la reserva, mostrar automáticamente un punto con la posición GPS del dispositivo
+  if(liveWatch==null)startLiveLocation();
 }
 function startDraw(){
   initFormMap(); if(!fmap)return;
@@ -1495,7 +1337,6 @@ function finishDraw(){
   fmap.fitBounds(L.polygon(currentPoly).getBounds().pad(0.3));
   polyInfo(); syncDrawButtons(); updateVertexInfo();
   if(gridM)buildGrid();
-  if($('#f_metodo').value==='Transecto')calcTransecto();
   maybeSaveReserva();
 }
 /* guarda (o actualiza) la reserva si hay nombre escrito y polígono cerrado */
@@ -1533,14 +1374,8 @@ function syncDrawButtons(){
   if(at)at.textContent=autoTracking?'⏹ Parar grabación':'⦿ Grabar andando';
   const tr=$('#trackRate');if(tr)tr.style.display=drawing?'flex':'none';
 }
-function placePointMarker(){
-  const la=parseFloat(latIn.value),lo=parseFloat(lonIn.value);
-  if(isNaN(la)||isNaN(lo)||!fmap)return;
-  if(pointMarker)pointMarker.setLatLng([la,lo]);
-  else pointMarker=L.circleMarker([la,lo],{radius:6,color:'#b4541f',fillColor:'#b4541f',fillOpacity:.9}).addTo(fmap);
-}
 function polyInfo(){
-  if(!currentPoly){$('#polyInfo').textContent='Sin polígono. Dibuja el área de ocupación o deja sólo el punto.';return}
+  if(!currentPoly){$('#polyInfo').textContent='Sin polígono. Inicia un polígono y marca el área de la reserva.';return}
   const a=polyAreaM2(currentPoly);
   $('#polyInfo').innerHTML=`Polígono: <b>${currentPoly.length}</b> vértices · área ≈ <b>${a<10000?a.toFixed(0)+' m²':(a/10000).toFixed(3)+' ha'}</b>`;
 }
@@ -1557,7 +1392,6 @@ $('#btnAutoTrack').onclick=toggleAutoTrack;
 $('#btnFinish').onclick=finishDraw;
 $('#btnUndo').onclick=undoVertex;
 $('#btnClearPoly').onclick=()=>{cancelDraw();if(drawnItems)drawnItems.clearLayers();currentPoly=null;currentPolyAcc=null;polyInfo();presenceMulti={};targetSpecies=[];renderTargetSpeciesChips();if(gridLayer){fmap.removeLayer(gridLayer);gridLayer=null}gridCells=[];$('#btnGridPresence').disabled=true;$('#btnGridClear').disabled=true;$('#cellPanel').style.display='none';activeCellKey=null;freqInfo('Cierra un polígono, define las especies objetivo y elige un tamaño de malla.');{const w=document.getElementById('gridAccWarn');if(w)w.style.display='none';}};
-$('#btnCenterPoint').onclick=()=>{const la=parseFloat(latIn.value),lo=parseFloat(lonIn.value);if(isNaN(la)){toast('Introduce primero las coordenadas');return}initFormMap();fmap.setView([la,lo],16);placePointMarker()};
 
 /* ===== UBICACIÓN EN VIVO ===== */
 let liveWatch=null, liveMarker=null, liveAccCircle=null;
@@ -1612,32 +1446,20 @@ function renderPhotos(){
 /* ================= SAVE ================= */
 $('#f_observador').value=load(LS_OBS,'')||'';
 $('#btnSave').onclick=()=>{
-  const esp=taxIn.value.trim();
-  const lat=parseFloat(latIn.value),lon=parseFloat(lonIn.value);
-  if(!esp){toast('Falta la especie');return}
-  if(isNaN(lat)||isNaN(lon)){toast('Faltan las coordenadas');return}
   if(!$('#f_fecha').value){toast('Falta la fecha');return}
   const obs=$('#f_observador').value.trim(); save(LS_OBS,obs);
   const editId=$('#f_editid').value;
-  const cat=catByName(esp)||{};
   const rec={
     id: editId||uid(),
-    especie:esp, familia:cat.f||'', cultivo:cat.c||'', psc:!!cat.psc, psua:!!cat.psua, uicn:cat.u||'',
-    certidumbre:$('#f_certidumbre').value, fecha:$('#f_fecha').value,
-    lat,lon, utm:toUTM(lat,lon), localidad:$('#f_localidad').value.trim(),
+    fecha:$('#f_fecha').value,
+    localidad:$('#f_localidad').value.trim(),
     reserva:$('#f_reserva').value.trim(),
-    metodo:$('#f_metodo').value,
-    transecto_area_m2:$('#f_metodo').value==='Transecto'?(parseFloat($('#f_transArea').value)||null):null,
-    transecto_n:$('#f_metodo').value==='Transecto'?(parseFloat($('#f_transN').value)||null):null,
-    unidad:$('#f_unidad').value, abundancia:$('#f_abundancia').value,
-    cobertura:$('#f_cobertura').value, fenologia:$('#f_fenologia').value,
     habitat:$('#f_habitat').value.trim(), sustrato:$('#f_sustrato').value,
     pliego:$('#f_pliego').value.trim(), observador:obs, notas:$('#f_notas').value.trim(),
     poligono:currentPoly, poligono_acc:currentPolyAcc,
+    especies_objetivo:targetSpecies.slice(),
     malla_m:gridM||null,
     cuadriculas_totales:gridCells.length||null,
-    cuadriculas_presencia:gridCells.length?gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].has(esp)).length:null,
-    frecuencia_ocupacion:gridCells.length?+(gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].has(esp)).length*100/gridCells.length).toFixed(1):null,
     fotos:photos.slice(),
     creado: editId? (records.find(r=>r.id===editId)||{}).creado||Date.now() : Date.now()
   };
@@ -1649,22 +1471,16 @@ $('#btnSave').onclick=()=>{
    (nombre, localidad, polígono, especies objetivo, malla y presencias)
    para poder seguir registrando otras especies de la misma reserva sin recargarla */
 function resetPopulationFields(){
-  ['f_especie','f_lat','f_lon','f_abundancia','f_pliego','f_notas','f_habitat','f_transArea','f_transN'].forEach(id=>$('#'+id).value='');
-  ['f_certidumbre','f_unidad','f_cobertura','f_fenologia','f_sustrato','f_metodo'].forEach(id=>$('#'+id).value='');
-  $('#f_unidad').disabled=false; $('#f_abundancia').readOnly=false; $('#f_abundancia').style.background='';
-  $('#transectoBlock').style.display='none';
+  ['f_pliego','f_notas','f_habitat'].forEach(id=>$('#'+id).value='');
+  $('#f_sustrato').value='';
   $('#f_fecha').value=new Date().toISOString().slice(0,10);
   $('#f_editid').value=''; photos=[]; renderPhotos();
   if(drawing)cancelDraw();
-  const ti=$('#taxInfo'); if(ti)ti.style.display='none';
-  applyMethod();
 }
 /* limpieza completa: abandona también la reserva activa (polígono, especies objetivo, malla, presencias) */
 function resetForm(){
-  ['f_especie','f_lat','f_lon','f_localidad','f_reserva','f_abundancia','f_pliego','f_notas','f_habitat','f_transArea','f_transN'].forEach(id=>$('#'+id).value='');
-  ['f_certidumbre','f_unidad','f_cobertura','f_fenologia','f_sustrato','f_metodo'].forEach(id=>$('#'+id).value='');
-  $('#f_unidad').disabled=false; $('#f_abundancia').readOnly=false; $('#f_abundancia').style.background='';
-  $('#transectoBlock').style.display='none';
+  ['f_localidad','f_reserva','f_pliego','f_notas','f_habitat'].forEach(id=>$('#'+id).value='');
+  $('#f_sustrato').value='';
   $('#f_fecha').value=new Date().toISOString().slice(0,10);
   $('#f_editid').value=''; photos=[];currentPoly=null;currentPolyAcc=null;vertexAcc=[];renderPhotos();
   if(drawing)cancelDraw();
@@ -1679,8 +1495,8 @@ function resetForm(){
   const eoi=$('#f_especieObj'); if(eoi)eoi.value='';
   const eob=$('#especieObjSuggestList'); if(eob)eob.style.display='none';
   renderTargetSpeciesChips();
-  if(drawnItems)drawnItems.clearLayers(); $('#utmPoint').innerHTML='UTM ETRS89: —'; polyInfo();
-  const ti=$('#taxInfo');if(ti)ti.style.display='none';
+  const fb=$('#freqSpeciesBox'); if(fb){fb.style.display='none';fb.innerHTML='';}
+  if(drawnItems)drawnItems.clearLayers(); polyInfo();
   const ri=$('#reservaSaveInfo');if(ri)ri.style.display='none';
   const rp=$('#f_reservaPick');if(rp)rp.value='';
   refreshReservaPicker();
@@ -1689,79 +1505,26 @@ function resetForm(){
   if(liveAccCircle&&fmap){fmap.removeLayer(liveAccCircle);liveAccCircle=null}
 }
 $('#btnReset').onclick=()=>{resetForm();toast('Formulario limpio')};
-$('#f_unidad').addEventListener('change',()=>{ maybeCopyFreq(); if($('#f_unidad').value==='Frecuencia (%)'&&gridCells.length)updateFreq(); });
-
-/* ===== MÉTODO DE ESTIMACIÓN DEL TAMAÑO POBLACIONAL ===== */
-function applyMethod(){
-  const m=$('#f_metodo').value;
-  const transBlock=$('#transectoBlock'), gridBlock=$('#gridBlock');
-  const unidad=$('#f_unidad'), abund=$('#f_abundancia');
-  // por defecto, todo editable y secciones ocultas
-  transBlock.style.display='none';
-  gridBlock.style.display='';            // la malla puede usarse siempre como herramienta, pero…
-  unidad.disabled=false; abund.readOnly=false;
-  abund.style.background='';
-
-  if(m==='Transecto'){
-    transBlock.style.display='';
-    gridBlock.style.display='none';      // ocultar frecuencia en modo transecto
-    unidad.value='Individuo'; unidad.disabled=true;
-    abund.readOnly=true; abund.style.background='#eef2e9';
-    calcTransecto();
-  } else if(m==='Frecuencia'){
-    gridBlock.style.display='';
-    unidad.value='Frecuencia (%)'; unidad.disabled=true;
-    abund.readOnly=true; abund.style.background='#eef2e9';
-    maybeCopyFreq(); if(gridCells.length)updateFreq();
-  } else if(m==='Censo total'){
-    gridBlock.style.display='none';      // censo: valor directo, sin malla ni transecto
-    abund.readOnly=false; abund.style.background='';
-    // unidad libre; no forzamos nada
-  } else {
-    // sin método elegido: dejar la malla disponible como antes
-    gridBlock.style.display='';
-  }
-}
-$('#f_metodo').addEventListener('change',applyMethod);
-
-/* cálculo por transecto: abundancia = n · areaPoligono / areaTransecto */
-function calcTransecto(){
-  const info=$('#transInfo');
-  const tA=parseFloat($('#f_transArea').value), tN=parseFloat($('#f_transN').value);
-  if(!currentPoly||currentPoly.length<3){ info.innerHTML='⚠ Falta el polígono de área de ocupación. Ciérralo para poder calcular.'; return; }
-  const areaPoly=polyAreaM2(currentPoly);
-  if(isNaN(tA)||tA<=0||isNaN(tN)||tN<0){ info.innerHTML=`Área de ocupación = <b>${fmtArea(areaPoly)}</b>. Introduce tamaño del transecto (m²) y nº de individuos.`; return; }
-  const ab=tN*areaPoly/tA;
-  $('#f_abundancia').value=Math.round(ab);
-  info.innerHTML=`Área de ocupación <b>${areaPoly.toFixed(0)} m²</b> · densidad <b>${(tN/tA).toFixed(3)}</b> ind/m² · `+
-    `abundancia estimada = <b>${Math.round(ab).toLocaleString('es')}</b> individuos`;
-}
-$('#f_transArea').addEventListener('input',calcTransecto);
-$('#f_transN').addEventListener('input',calcTransecto);
 
 /* ================= LIST ================= */
 $('#searchRec').addEventListener('input',renderList);
 function renderList(){
   const q=$('#searchRec').value.trim().toLowerCase();
-  const list=records.filter(r=>!q||r.especie.toLowerCase().includes(q)||(r.localidad||'').toLowerCase().includes(q));
+  const list=records.filter(r=>!q||(r.reserva||'').toLowerCase().includes(q)||(r.localidad||'').toLowerCase().includes(q));
   const box=$('#recList');
   if(!list.length){box.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M5 8c4 0 7 2 7 5M19 8c-4 0-7 2-7 5"/></svg><p>Aún no hay registros que mostrar.</p></div>';return}
   box.innerHTML=list.map(r=>{
-    const u=r.utm||toUTM(r.lat,r.lon);
     const meta=[
       r.fecha&&`<b>${r.fecha}</b>`,
       r.localidad&&esc(r.localidad),
-      r.reserva&&('🛡 '+esc(r.reserva)),
-      r.abundancia&&`${esc(r.abundancia)} ${esc(r.unidad||'ud')}`,
-      r.fenologia&&esc(r.fenologia),
+      r.especies_objetivo&&r.especies_objetivo.length&&`🎯 ${r.especies_objetivo.length} especie${r.especies_objetivo.length===1?'':'s'} objetivo`,
       r.habitat&&esc(r.habitat.split(' · ')[0]),
       r.pliego&&'📄 '+esc(r.pliego),
-      r.frecuencia_ocupacion!=null&&`▦ ${r.frecuencia_ocupacion}% (${r.cuadriculas_presencia}/${r.cuadriculas_totales} · ${r.malla_m>=1000?r.malla_m/1000+'km':r.malla_m+'m'})`,
-      `UTM ${u.zone}N ${u.x.toFixed(0)} ${u.y.toFixed(0)}`,
+      r.malla_m&&`▦ malla ${r.malla_m>=1000?r.malla_m/1000+'km':r.malla_m+'m'} · ${r.cuadriculas_totales||0} cuadrículas`,
       r.fotos&&r.fotos.length&&`📷 ${r.fotos.length}`
     ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
     return `<div class="rec ${r.poligono?'haspoly':''}">
-      <h3>${esc(r.especie)}</h3>
+      <h3>${esc(r.reserva||'(sin reserva)')}</h3>
       <div class="meta">${meta}</div>
       ${r.poligono?`<div style="margin-top:5px"><span class="tag">▱ polígono · ${r.poligono.length} vért · ${fmtArea(polyAreaM2(r.poligono))}</span></div>`:''}
       <div class="acts">
@@ -1785,28 +1548,19 @@ function editRec(id){
     targetSpecies=[]; presenceMulti={}; gridM=0; gridCells=[]; renderTargetSpeciesChips();
     if(currentPoly){drawnItems.clearLayers();const ly=L.polygon(currentPoly,{color:'#b4541f'});drawnItems.addLayer(ly);fmap.fitBounds(ly.getBounds())}
   }
-  taxIn.value=r.especie;latIn.value=r.lat;lonIn.value=r.lon;
-  $('#f_certidumbre').value=r.certidumbre||'';$('#f_fecha').value=r.fecha||'';
-  $('#f_localidad').value=r.localidad||'';$('#f_reserva').value=r.reserva||'';$('#f_unidad').value=r.unidad||'';
-  $('#f_abundancia').value=r.abundancia||'';$('#f_cobertura').value=r.cobertura||'';
-  $('#f_fenologia').value=r.fenologia||'';$('#f_habitat').value=r.habitat||'';
+  $('#f_fecha').value=r.fecha||'';
+  $('#f_localidad').value=r.localidad||'';$('#f_reserva').value=r.reserva||'';
+  $('#f_habitat').value=r.habitat||'';
   $('#f_sustrato').value=r.sustrato||'';$('#f_pliego').value=r.pliego||'';
   $('#f_notas').value=r.notas||'';$('#f_editid').value=r.id;
-  $('#f_metodo').value=r.metodo||'';
-  $('#f_transArea').value=r.transecto_area_m2!=null?r.transecto_area_m2:'';
-  $('#f_transN').value=r.transecto_n!=null?r.transecto_n:'';
   photos=(r.fotos||[]).slice();renderPhotos();
-  updateUTM();catInfo();
-  applyMethod();                       // aplica visibilidad y forzado según el método guardado
-  $('#f_unidad').value=r.unidad||$('#f_unidad').value;
-  $('#f_abundancia').value=r.abundancia||'';
   polyInfo();window.scrollTo(0,0);toast('Editando registro');
 }
 
 /* ================= CUADRÍCULA Y FRECUENCIA DE OCUPACIÓN ================= */
 function mapWarn(which){
   const el=document.getElementById(which);
-  if(el)el.innerHTML='<div style="padding:18px;font-size:13px;color:#6b5400;background:#fbf4e3;border-radius:8px;height:100%;display:flex;align-items:center;justify-content:center;text-align:center">Mapa no disponible sin conexión. Puedes registrar el punto por GPS o coordenadas; el dibujo de polígonos requiere el mapa.</div>';
+  if(el)el.innerHTML='<div style="padding:18px;font-size:13px;color:#6b5400;background:#fbf4e3;border-radius:8px;height:100%;display:flex;align-items:center;justify-content:center;text-align:center">Mapa no disponible sin conexión. Se necesita conexión para dibujar el polígono de la reserva.</div>';
 }
 /* Estado de la malla sobre el mapa del formulario */
 let gridM=0;                 // tamaño de celda en m (0 = sin malla)
@@ -1892,21 +1646,28 @@ function renderGrid(){
 function freqInfo(msg){ $('#freqInfo').innerHTML=msg; }
 function updateFreq(){
   const total=gridCells.length;
-  if(!total){freqInfo('Sin celdas dentro del polígono.');return}
-  const anyPres=gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].size>0).length;
-  let html=`Malla <b>${gridM>=1000?gridM/1000+' km':gridM+' m'}</b> (huso ${gridCells[0].z}N) · `+
-    `cuadrículas con alguna especie <b>${anyPres}</b> / totales <b>${total}</b>`;
-  if(targetSpecies.length){
-    const rows=targetSpecies.map(sp=>{
-      const n=gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].has(sp)).length;
-      const f=total?n*100/total:0;
-      return `<div>· <i>${esc(sp)}</i>: <b>${n}</b>/${total} (${f.toFixed(1)}%)</div>`;
-    }).join('');
-    html+=`<div style="margin-top:6px">${rows}</div>`;
-  } else {
-    html+=`<div style="margin-top:6px;opacity:.75">Añade especies objetivo arriba para poder marcar su presencia por cuadrícula.</div>`;
+  const box=$('#freqSpeciesBox');
+  if(!total){
+    freqInfo('Sin celdas dentro del polígono.');
+    if(box){box.style.display='none';box.innerHTML='';}
+    return;
   }
-  freqInfo(html);
+  const anyPres=gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].size>0).length;
+  freqInfo(`Malla <b>${gridM>=1000?gridM/1000+' km':gridM+' m'}</b> (huso ${gridCells[0].z}N) · `+
+    `cuadrículas con alguna especie <b>${anyPres}</b> / totales <b>${total}</b>`);
+  if(box){
+    if(targetSpecies.length){
+      box.style.display='block';
+      box.innerHTML=targetSpecies.map(sp=>{
+        const n=gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].has(sp)).length;
+        const f=total?n*100/total:0;
+        return `<div class="row"><i>${esc(sp)}</i><b>${n}/${total} · ${f.toFixed(1)}%</b></div>`;
+      }).join('');
+    } else {
+      box.style.display='block';
+      box.innerHTML='<div class="row" style="color:var(--muted)">Añade especies objetivo arriba para ver su frecuencia aquí.</div>';
+    }
+  }
 }
 /* localizar la celda que contiene una posición y abrir el panel de especies para marcarla */
 function markPresenceAt(lat,lon){
@@ -1920,18 +1681,6 @@ function markPresenceAt(lat,lon){
   if(!cell){toast('Ese punto cae fuera del área de la reserva');return false}
   openCellPanel(key);
   return true;
-}
-let autoUnitFreq=false;
-function maybeCopyFreq(){
-  // si la unidad de conteo es Frecuencia (%), volcar la frecuencia DE LA ESPECIE ACTUAL a Abundancia
-  if($('#f_unidad').value==='Frecuencia (%)' && gridCells.length){
-    const esp=(taxIn.value||'').trim();
-    if(esp){
-      const n=gridCells.filter(c=>presenceMulti[c.key]&&presenceMulti[c.key].has(esp)).length;
-      const f=gridCells.length?n*100/gridCells.length:0;
-      $('#f_abundancia').value=f.toFixed(1); autoUnitFreq=true;
-    } else autoUnitFreq=false;
-  } else autoUnitFreq=false;
 }
 /* ---- panel de presencia multiespecie por cuadrícula ---- */
 function openCellPanel(key){
@@ -1958,7 +1707,7 @@ function toggleCellSpecies(sp,present){
   if(!presenceMulti[activeCellKey])presenceMulti[activeCellKey]=new Set();
   if(present)presenceMulti[activeCellKey].add(sp);
   else{ presenceMulti[activeCellKey].delete(sp); if(!presenceMulti[activeCellKey].size)delete presenceMulti[activeCellKey]; }
-  renderGrid(); updateFreq(); maybeCopyFreq(); maybeSaveReserva();
+  renderGrid(); updateFreq(); maybeSaveReserva();
 }
 $('#btnCellPanelClose').onclick=()=>{ $('#cellPanel').style.display='none'; activeCellKey=null; };
 /* selector de tamaño de malla */
@@ -2013,7 +1762,7 @@ function gridMapClick(latlng){
   openCellPanel(key);
 }
 $('#btnGridClear').onclick=()=>{
-  presenceMulti={}; renderGrid(); updateFreq(); maybeCopyFreq(); maybeSaveReserva();
+  presenceMulti={}; renderGrid(); updateFreq(); maybeSaveReserva();
   $('#cellPanel').style.display='none'; activeCellKey=null;
   toast('Presencias borradas');
 };
@@ -2028,29 +1777,25 @@ function slug(s){
 $('#btnGeo').onclick=()=>{
   const feats=[];
   records.forEach(r=>{
-    feats.push({type:'Feature',geometry:{type:'Point',coordinates:[r.lon,r.lat]},properties:geoProps(r)});
     if(r.poligono&&r.poligono.length>2){
       const ring=r.poligono.map(([la,lo])=>[lo,la]);ring.push(ring[0]);
-      feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[ring]},properties:{...geoProps(r),tipo:'area_ocupacion'}});
+      feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[ring]},properties:geoProps(r)});
     }
   });
   dl(`florcwr_registros_${todayStamp()}.geojson`,JSON.stringify({type:'FeatureCollection',crs:{type:'name',properties:{name:'EPSG:4326'}},features:feats},null,1),'application/geo+json');
   toast('GeoJSON exportado');
 };
-function geoProps(r){const u=r.utm||toUTM(r.lat,r.lon);return{
-  especie:r.especie,familia:r.familia||'',cultivo_ref:r.cultivo||'',psc:!!r.psc,psua:!!r.psua,uicn:r.uicn||'',
-  certidumbre:r.certidumbre,fecha:r.fecha,localidad:r.localidad,reserva_genetica:r.reserva||'',
-  metodo_estimacion:r.metodo||'',transecto_area_m2:r.transecto_area_m2||'',transecto_n:r.transecto_n||'',
-  unidad:r.unidad,abundancia:r.abundancia,cobertura:r.cobertura,fenologia:r.fenologia,
+function geoProps(r){return{
+  fecha:r.fecha,localidad:r.localidad,reserva_genetica:r.reserva||'',
+  especies_objetivo:(r.especies_objetivo||[]).join(' · '),
   habitat_eunis:r.habitat,sustrato:r.sustrato,pliego:r.pliego,observador:r.observador,
-  notas:r.notas,utm_huso:u.zone,utm_x:+u.x.toFixed(1),utm_y:+u.y.toFixed(1),epsg:'258'+u.zone,
-  malla_m:r.malla_m||'',cuadriculas_totales:r.cuadriculas_totales||'',cuadriculas_presencia:r.cuadriculas_presencia||'',frecuencia_ocupacion_pct:(r.frecuencia_ocupacion!=null?r.frecuencia_ocupacion:''),
+  notas:r.notas,malla_m:r.malla_m||'',cuadriculas_totales:r.cuadriculas_totales||'',
   n_fotos:(r.fotos||[]).length};}
 $('#btnCsv').onclick=()=>{
-  const cols=['especie','familia','cultivo_ref','psc','psua','uicn','certidumbre','fecha','lat','lon','utm_huso','utm_x','utm_y','localidad','reserva_genetica','metodo_estimacion','transecto_area_m2','transecto_n','unidad','abundancia','cobertura','fenologia','habitat','sustrato','pliego','observador','notas','n_vertices_poligono','area_m2','malla_m','cuadriculas_totales','cuadriculas_presencia','frecuencia_ocupacion_pct'];
+  const cols=['fecha','localidad','reserva_genetica','especies_objetivo','habitat','sustrato','pliego','observador','notas','n_vertices_poligono','area_m2','malla_m','cuadriculas_totales','n_fotos'];
   const rows=[cols.join(',')];
-  records.forEach(r=>{const u=r.utm||toUTM(r.lat,r.lon);const a=r.poligono?polyAreaM2(r.poligono):'';
-    const vals=[r.especie,r.familia||'',r.cultivo||'',r.psc?'sí':'',r.psua?'sí':'',r.uicn||'',r.certidumbre,r.fecha,r.lat,r.lon,u.zone,u.x.toFixed(1),u.y.toFixed(1),r.localidad,r.reserva||'',r.metodo||'',r.transecto_area_m2||'',r.transecto_n||'',r.unidad,r.abundancia,r.cobertura,r.fenologia,r.habitat,r.sustrato,r.pliego,r.observador,r.notas,r.poligono?r.poligono.length:'',a===''?'':a.toFixed(0),r.malla_m||'',r.cuadriculas_totales||'',r.cuadriculas_presencia||'',(r.frecuencia_ocupacion!=null?r.frecuencia_ocupacion:'')];
+  records.forEach(r=>{const a=r.poligono?polyAreaM2(r.poligono):'';
+    const vals=[r.fecha,r.localidad,r.reserva||'',(r.especies_objetivo||[]).join(' · '),r.habitat,r.sustrato,r.pliego,r.observador,r.notas,r.poligono?r.poligono.length:'',a===''?'':a.toFixed(0),r.malla_m||'',r.cuadriculas_totales||'',(r.fotos||[]).length];
     rows.push(vals.map(v=>{v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(','));
   });
   dl(`florcwr_registros_${todayStamp()}.csv`,'\ufeff'+rows.join('\n'),'text/csv');toast('CSV exportado');
@@ -2170,7 +1915,6 @@ function loadReserva(nombre, silent){
     const info=$('#reservaSaveInfo'); if(info){info.style.display='block';info.innerHTML=`Polígono de «<b>${esc(nombre)}</b>» cargado, con sus especies objetivo y la malla de presencia ya trabajada (si existía).`;}
     toast('Reserva cargada');
   }
-  if($('#f_metodo').value==='Transecto')calcTransecto();
 }
 $('#btnLoadReserva').onclick=()=>{const n=$('#f_reservaPick').value;if(!n){toast('Elige una reserva');return}loadReserva(n)};
 $('#f_reserva').addEventListener('blur',()=>{ if(currentPoly&&currentPoly.length>=3)maybeSaveReserva(); });
