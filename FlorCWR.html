@@ -1256,7 +1256,7 @@ function initFormMap(){
   capaSatelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'});
   watchSize('map',fmap);
   drawnItems=new L.FeatureGroup().addTo(fmap);
-  fmap.on('click',e=>{ if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
+  fmap.on('click',e=>{ if(!e.latlng)return; if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
   // al crear el mapa de la reserva, mostrar automáticamente un punto con la posición GPS del dispositivo
   if(liveWatch==null)startLiveLocation();
 }
@@ -1377,6 +1377,7 @@ function maybeSaveReserva(){
     especies_objetivo:targetSpecies.slice(),
     malla_m:gridM||0,
     presencia:presenciaPlain,
+    visitados:[...visitedCells],
     updated:Date.now()
   };
   save(LS_RES,reservas);
@@ -1509,7 +1510,7 @@ function resetForm(){
   $('#f_editid').value=''; photos=[];currentPoly=null;currentPolyAcc=null;vertexAcc=[];renderPhotos();
   if(drawing)cancelDraw();
   // reset de la malla/frecuencia/especies objetivo (todo ligado a la reserva)
-  presenceMulti={}; gridCells=[]; gridM=0; autoUnitFreq=false; targetSpecies=[]; activeCellKey=null;
+  presenceMulti={}; visitedCells=new Set(); gridCells=[]; gridM=0; autoUnitFreq=false; targetSpecies=[]; activeCellKey=null;
   if(gridLayer&&fmap){fmap.removeLayer(gridLayer);gridLayer=null}
   document.querySelectorAll('#gridCfg button').forEach(x=>x.classList.remove('on'));
   const g0=document.querySelector('#gridCfg button[data-m="0"]'); if(g0)g0.classList.add('on');
@@ -1569,7 +1570,7 @@ function editRec(id){
     loadReserva(r.reserva, true);
   } else {
     currentPoly=r.poligono||null; currentPolyAcc=r.poligono_acc||null;
-    targetSpecies=[]; presenceMulti={}; gridM=0; gridCells=[]; renderTargetSpeciesChips();
+    targetSpecies=[]; presenceMulti={}; visitedCells=new Set(); gridM=0; gridCells=[]; renderTargetSpeciesChips();
     if(currentPoly){drawnItems.clearLayers();const ly=L.polygon(currentPoly,{color:'#b4541f'});drawnItems.addLayer(ly);fmap.fitBounds(ly.getBounds())}
   }
   $('#f_fecha').value=r.fecha||'';
@@ -1591,6 +1592,7 @@ let gridM=0;                 // tamaño de celda en m (0 = sin malla)
 let gridLayer=null;          // capa Leaflet con los rectángulos de la malla
 let gridCells=[];            // celdas dentro del polígono: {key,x,y,z,bounds}
 let presenceMulti={};        // { cellKey: Set<especie> } — presencia multiespecie, ligada a la reserva
+let visitedCells=new Set();  // claves de cuadrículas ya revisadas (con o sin especies presentes)
 let targetSpecies=[];        // especies objetivo de la reserva activa
 let activeCellKey=null;      // celda actualmente abierta en el panel de presencia
 
@@ -1656,13 +1658,13 @@ function renderGrid(){
   if(!gridLayer)return;
   gridLayer.clearLayers();
   gridCells.forEach(cell=>{
-    const set=presenceMulti[cell.key]; const has=!!(set&&set.size);
+    const visited=visitedCells.has(cell.key);
     const active=(cell.key===activeCellKey);
     L.rectangle([[cell.bounds[0],cell.bounds[1]],[cell.bounds[2],cell.bounds[3]]],{
       color: active?'#2f9e44':'#5d7a5e', weight: active?1.4:.7,
-      fillColor: active?'#2f9e44':(has?'#b4541f':'#5d7a5e'),
-      fillOpacity: active?0.55:(has?0.55:0.06)
-    }).addTo(gridLayer).on('click',()=>{ if(gridM&&gridCells.length) openCellPanel(cell.key); });
+      fillColor: active?'#2f9e44':(visited?'#b4541f':'#5d7a5e'),
+      fillOpacity: active?0.55:(visited?0.55:0.06)
+    }).addTo(gridLayer).on('click',e=>{ if(gridM&&gridCells.length){ L.DomEvent.stopPropagation(e); openCellPanel(cell.key); } });
   });
   // repintar el polígono encima para que se vea el contorno
   if(currentPoly)L.polygon(currentPoly,{color:'#b4541f',weight:2,fill:false}).addTo(gridLayer);
@@ -1736,7 +1738,11 @@ function toggleCellSpecies(sp,present){
   updateFreq(); maybeSaveReserva();
   // mientras el panel está abierto la celda se mantiene en verde; el color final (naranja/gris) se aplica al cerrar
 }
-$('#btnCellPanelClose').onclick=()=>{ $('#cellPanel').style.display='none'; activeCellKey=null; renderGrid(); };
+$('#btnCellPanelClose').onclick=()=>{
+  if(activeCellKey)visitedCells.add(activeCellKey);
+  $('#cellPanel').style.display='none'; activeCellKey=null;
+  renderGrid(); maybeSaveReserva();
+};
 /* selector de tamaño de malla */
 document.querySelectorAll('#gridCfg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#gridCfg button').forEach(x=>x.classList.remove('on'));
@@ -1780,6 +1786,7 @@ function gridAccWarn(acc){
 }
 /* permitir también marcar/desmarcar tocando una celda en el mapa */
 function gridMapClick(latlng){
+  if(!latlng)return;
   if(!gridCells.length||!gridM)return;
   if(!targetSpecies.length){toast('Añade primero al menos una especie objetivo');return}
   const z=gridCells[0].z;
@@ -1789,7 +1796,7 @@ function gridMapClick(latlng){
   openCellPanel(key);
 }
 $('#btnGridClear').onclick=()=>{
-  presenceMulti={};
+  presenceMulti={}; visitedCells=new Set();
   $('#cellPanel').style.display='none'; activeCellKey=null;
   renderGrid(); updateFreq(); maybeSaveReserva();
   toast('Presencias borradas');
@@ -1924,6 +1931,7 @@ function loadReserva(nombre, silent){
   // malla y presencias multiespecie: viven con la reserva y se restauran
   presenceMulti={};
   if(r.presencia)Object.keys(r.presencia).forEach(k=>{ presenceMulti[k]=new Set(r.presencia[k]); });
+  visitedCells=new Set(r.visitados||[]);
   gridCells=[];
   if(gridLayer&&fmap){fmap.removeLayer(gridLayer);gridLayer=null}
   document.querySelectorAll('#gridCfg button').forEach(x=>x.classList.remove('on'));
