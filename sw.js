@@ -6,7 +6,7 @@
    - Teselas del mapa (OpenStreetMap): stale-while-revalidate (zonas ya vistas quedan offline).
    IMPORTANTE: incrementar SW_VERSION en cada publicación para forzar la actualización.
 */
-const SW_VERSION  = 'v15-dev';                       // <-- subir este número en cada cambio
+const SW_VERSION  = 'v16-dev';                       // <-- subir este número en cada cambio
 const SHELL_CACHE = 'florcwr-dev-shell-' + SW_VERSION;
 const TILE_CACHE  = 'florcwr-dev-tiles-v1';     // las teselas se conservan entre versiones
 const SHELL = [

@@ -1256,7 +1256,7 @@ function initFormMap(){
   capaSatelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'});
   watchSize('map',fmap);
   drawnItems=new L.FeatureGroup().addTo(fmap);
-  fmap.on('click',e=>{ if(!e.latlng)return; if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
+  fmap.on('click',e=>{ if(!e.latlng)return; if(drawing) addVertex(e.latlng); });
   // al crear el mapa de la reserva, mostrar automáticamente un punto con la posición GPS del dispositivo
   if(liveWatch==null)startLiveLocation();
 }
@@ -1723,9 +1723,10 @@ function renderCellPanel(){
   $('#cellPanelLabel').textContent=cell?`(huso ${cell.z}N · ${cell.x}/${cell.y})`:'';
   const present=presenceMulti[activeCellKey]||new Set();
   $('#cellPanelList').innerHTML=targetSpecies.length
-    ? targetSpecies.map(sp=>`<label><input type="checkbox" data-sp="${esc(sp)}" ${present.has(sp)?'checked':''}> <i>${esc(sp)}</i></label>`).join('')
+    ? targetSpecies.map(sp=>`<label><input type="checkbox" data-sp="${esc(sp)}"> <i>${esc(sp)}</i></label>`).join('')
     : '<div class="empty">No hay especies objetivo definidas.</div>';
   $('#cellPanelList').querySelectorAll('input[data-sp]').forEach(cb=>{
+    cb.checked=present.has(cb.dataset.sp);   // se fija por código, no solo por atributo HTML, para partir siempre de cero
     cb.onchange=()=>toggleCellSpecies(cb.dataset.sp, cb.checked);
   });
 }
@@ -1783,17 +1784,6 @@ function gridAccWarn(acc){
   el.style.display='block';
   el.innerHTML=`⚠ La precisión del GPS (±${Math.round(acc)} m) es mayor que la mitad de la celda (${gridM} m). `+
     `El punto podría caer en una cuadrícula contigua a la real. En mallas finas, confirma visualmente la celda en el mapa o márcala tocándola.`;
-}
-/* permitir también marcar/desmarcar tocando una celda en el mapa */
-function gridMapClick(latlng){
-  if(!latlng)return;
-  if(!gridCells.length||!gridM)return;
-  if(!targetSpecies.length){toast('Añade primero al menos una especie objetivo');return}
-  const z=gridCells[0].z;
-  const [x,y]=proj4("EPSG:258"+z,[latlng.lng,latlng.lat]);
-  const key=Math.floor(x/gridM)*gridM+'_'+Math.floor(y/gridM)*gridM;
-  if(!gridCells.find(c=>c.key===key))return;
-  openCellPanel(key);
 }
 $('#btnGridClear').onclick=()=>{
   presenceMulti={}; visitedCells=new Set();
