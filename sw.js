@@ -6,7 +6,7 @@
    - Teselas del mapa (OpenStreetMap): stale-while-revalidate (zonas ya vistas quedan offline).
    IMPORTANTE: incrementar SW_VERSION en cada publicación para forzar la actualización.
 */
-const SW_VERSION  = 'v12-dev';                       // <-- subir este número en cada cambio
+const SW_VERSION  = 'v13-dev';                       // <-- subir este número en cada cambio
 const SHELL_CACHE = 'florcwr-dev-shell-' + SW_VERSION;
 const TILE_CACHE  = 'florcwr-dev-tiles-v1';     // las teselas se conservan entre versiones
 const SHELL = [
@@ -45,8 +45,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
 
-  // Teselas: cache + refresco en segundo plano
-  if (/tile\.openstreetmap\.org/.test(url.hostname) || /\.tile\./.test(url.hostname)) {
+  // Teselas: cache + refresco en segundo plano (OpenStreetMap + Esri World Imagery)
+  if (/tile\.openstreetmap\.org/.test(url.hostname) || /\.tile\./.test(url.hostname) || /arcgisonline\.com/.test(url.hostname)) {
     e.respondWith(
       caches.open(TILE_CACHE).then(async cache => {
         const cached = await cache.match(e.request);

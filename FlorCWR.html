@@ -1247,7 +1247,9 @@ function initFormMap(){
   if(fmap)return;
   if(typeof L==='undefined'){mapWarn('map');return}
   fmap=L.map('map',{center:[40.33,-3.87],zoom:6});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(fmap);
+  const capaMapa=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(fmap);
+  const capaSatelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'});
+  L.control.layers({'Mapa':capaMapa,'Satélite':capaSatelite},null,{position:'topright',collapsed:true}).addTo(fmap);
   watchSize('map',fmap);
   drawnItems=new L.FeatureGroup().addTo(fmap);
   fmap.on('click',e=>{ if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
