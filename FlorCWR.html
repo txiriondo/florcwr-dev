@@ -761,6 +761,8 @@ textarea{resize:vertical;min-height:54px}
 .btn:active{transform:translateY(1px)}
 .btn.ghost{background:none;color:var(--sage-d)}
 .btn.ghost.on{background:#2f7be0;color:#fff;border-color:#1c5fb4}
+.layerbtn{background:none;color:var(--sage-d)}
+.layerbtn.on{background:var(--sage);color:#fff;border-color:var(--sage-d)}
 .btn.clay{background:var(--clay);border-color:#8c3f15}
 .btn.wide{width:100%;padding:13px;font-size:15px}
 .btn.sm{padding:7px 10px;font-size:13px}
@@ -890,6 +892,8 @@ textarea{resize:vertical;min-height:54px}
         <button class="btn sm ghost" id="btnUndo" style="display:none">↶ Deshacer</button>
         <button class="btn sm" id="btnFinish" style="display:none">✓ Cerrar polígono</button>
         <button class="btn sm ghost" id="btnClearPoly">Borrar</button>
+        <button class="btn sm layerbtn on" id="btnLayerMap">🗺️ Mapa</button>
+        <button class="btn sm layerbtn" id="btnLayerSat">🛰️ Satélite</button>
         <button class="btn sm ghost" id="btnTrackMe">◉ Seguir mi posición</button>
       </div>
       <div class="utmline" id="vertexInfo" style="display:none"></div>
@@ -1243,19 +1247,31 @@ function watchSize(id,map){
   window.addEventListener('orientationchange',()=>setTimeout(fix,300));
   el.addEventListener('transitionend',fix);
 }
+let capaMapa=null, capaSatelite=null;
 function initFormMap(){
   if(fmap)return;
   if(typeof L==='undefined'){mapWarn('map');return}
   fmap=L.map('map',{center:[40.33,-3.87],zoom:6});
-  const capaMapa=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(fmap);
-  const capaSatelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'});
-  L.control.layers({'Mapa':capaMapa,'Satélite':capaSatelite},null,{position:'topright',collapsed:true}).addTo(fmap);
+  capaMapa=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(fmap);
+  capaSatelite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'});
   watchSize('map',fmap);
   drawnItems=new L.FeatureGroup().addTo(fmap);
   fmap.on('click',e=>{ if(drawing) addVertex(e.latlng); else if(gridM&&gridCells.length) gridMapClick(e.latlng); });
   // al crear el mapa de la reserva, mostrar automáticamente un punto con la posición GPS del dispositivo
   if(liveWatch==null)startLiveLocation();
 }
+$('#btnLayerMap').onclick=()=>{
+  initFormMap(); if(!fmap)return;
+  if(fmap.hasLayer(capaSatelite))fmap.removeLayer(capaSatelite);
+  if(!fmap.hasLayer(capaMapa))fmap.addLayer(capaMapa);
+  $('#btnLayerMap').classList.add('on'); $('#btnLayerSat').classList.remove('on');
+};
+$('#btnLayerSat').onclick=()=>{
+  initFormMap(); if(!fmap)return;
+  if(fmap.hasLayer(capaMapa))fmap.removeLayer(capaMapa);
+  if(!fmap.hasLayer(capaSatelite))fmap.addLayer(capaSatelite);
+  $('#btnLayerSat').classList.add('on'); $('#btnLayerMap').classList.remove('on');
+};
 function startDraw(){
   initFormMap(); if(!fmap)return;
   drawing=true; drawPts=[];
